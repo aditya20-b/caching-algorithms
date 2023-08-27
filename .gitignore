@@ -1,0 +1,4 @@
+seq
+pertester
+builds/*
+*.exe
