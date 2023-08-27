@@ -61,6 +61,14 @@ void ht_destroy(HashTable_t *ht);
 ht_status_t ht_insert(HashTable_t *ht, void *key, void *value);
 
 
+/// @brief Replaces the value of a key-value pair in the hashtable
+/// @param ht Pointer to the hashtable
+/// @param key Pointer to the unique key
+/// @param value Pointer to the new value
+/// @return HT_SUCCESS if the key-value pair was replaced successfully
+ht_status_t ht_replace(HashTable_t *ht, void *key, void *value);
+
+
 /// @brief Deletes a key-value pair from the hashtable
 /// @param ht Pointer to the hashtable
 /// @param key Pointer to the unique key

@@ -54,6 +54,25 @@ ht_status_t ht_insert(HashTable_t *ht, void *key, void *value) {
     return HT_SUCCESS;
 }
 
+
+ht_status_t ht_replace(HashTable_t *ht, void *key, void *value) {
+    int index = ht->hash(key) % ht->size;
+    int i = 0;
+    while (ht->table[index].state != EMPTY) {
+        if (ht->compare(ht->table[index].key, key)) {
+            ht->table[index].value = value;
+            return HT_SUCCESS;
+        }
+        index = (index + 1) % ht->size;
+        i++;
+        if (i == ht->size) {
+            return HT_NOT_FOUND;
+        }
+    }
+    return HT_NOT_FOUND;
+}
+
+
 ht_status_t ht_delete(HashTable_t *ht, void *key) {
     int index = ht->hash(key) % ht->size;
     int i = 0;
@@ -110,7 +129,7 @@ void _ht_print(HashTable_t *ht) {
 int ht_int_hash(void *key) {
     // We are using a large prime number to reduce collisions
     int hash_val = *(int *) key % BIG_PRIME;
-    // Sometimes the hash value can be negative due to memory errors(?), so we add the prime number to it to make it positive
+    // Sometimes the hash value can be negative due to memory errors(?), so we ll_append the prime number to it to make it positive
     return (hash_val < 0) ? hash_val + BIG_PRIME : hash_val;
 }
 

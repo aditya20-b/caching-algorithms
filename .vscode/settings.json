@@ -4,6 +4,8 @@
         "stdlib.h": "c",
         "iostream": "cpp",
         "stdio.h": "c",
-        "linkedlist.h": "c"
+        "linkedlist.h": "c",
+        "hashtable.h": "c",
+        "arc_caching.h": "c"
     }
 }

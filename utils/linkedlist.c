@@ -2,17 +2,17 @@
 #include <stdlib.h>
 #include "linkedlist.h"
 
-LinkedList *create_linked_list() {
-    LinkedList *list = malloc(sizeof(LinkedList));
+LinkedList_t *ll_create() {
+    LinkedList_t *list = malloc(sizeof(LinkedList_t));
     list->head = NULL;
     list->tail = NULL;
     list->size = 0;
     return list;
 }
 
-ll_status add(LinkedList *list, int value) {
+ll_status ll_append(LinkedList_t *list, void* data) {
     Node *node = malloc(sizeof(Node));
-    node->data = value;
+    node->data = data;
     node->next = NULL;
 
     // If the list is empty, set the head to the new node
@@ -30,7 +30,7 @@ ll_status add(LinkedList *list, int value) {
     return LL_SUCCESS;
 }
 
-ll_status add_at(LinkedList *list, int data, int index) {
+ll_status ll_insert(LinkedList_t *list, void* data, int index) {
 
     if (index < 0 || index > list->size) {
         return LL_OUT_OF_BOUNDS;
@@ -75,45 +75,38 @@ ll_status add_at(LinkedList *list, int data, int index) {
     return LL_SUCCESS;
 }
 
-ll_status remove_data(LinkedList *list, int value) {
-    Node *current = list->head;
-    Node *previous = NULL;
 
-    if (current == NULL) {
+ll_status ll_remove_last(LinkedList_t *list) {
+
+    if (list->head == NULL) {
         return LL_EMPTY;
     }
 
-    // Iterate through the list until we find the node with the value
-    while (current != NULL && current->data != value) {
+    if (list->head == list->tail) {
+        free(list->head);
+        list->head = NULL;
+        list->tail = NULL;
+        list->size--;
+        return LL_SUCCESS;
+    }
+
+    Node *current = list->head;
+    Node *previous = NULL;
+
+    while (current->next != NULL) {
         previous = current;
         current = current->next;
     }
-
-    if (current == NULL) {
-        return LL_NOT_FOUND;
-    }
-
-    // If the node is the head, set the head to the next node
-    if (current == list->head) {
-        list->head = current->next;
-        // Otherwise, set the previous node's next to the current node's next
-    }
-    else {
-        previous->next = current->next;
-    }
-
-    // If the node is the tail, set the tail to the previous node
-    if (current == list->tail) {
-        list->tail = previous;
-    }
-
+    
+    previous->next = NULL;
+    list->tail = previous;
     free(current);
     list->size--;
-
     return LL_SUCCESS;
 }
 
-ll_status remove_at(LinkedList *list, int index) {
+
+ll_status ll_remove_at(LinkedList_t *list, int index) {
 
     if (index < 0 || index >= list->size) {
         return LL_OUT_OF_BOUNDS;
@@ -151,20 +144,23 @@ ll_status remove_at(LinkedList *list, int index) {
 }
 
 
-void _print_linked_list(LinkedList *list) {
+void _print_linked_list(LinkedList_t *list) {
     Node *current = list->head;
     while (current != NULL) {
-        printf("%d ", current->data);
+        printf("%d ", *(int*)(current->data));  // Dereference the data as int*
         current = current->next;
     }
     printf("\n");
 }
 
-void free_linked_list(LinkedList *list) {
+
+void ll_destroy(LinkedList_t *list) {
     Node *current = list->head;
     Node *next = NULL;
     while (current != NULL) {
         next = current->next;
+        // Only uncomment this if you are storing pointers in the linked list
+        // free(current->data);
         free(current);
         current = next;
     }
@@ -172,32 +168,31 @@ void free_linked_list(LinkedList *list) {
 }
 
 int _main() {
-    LinkedList *list = create_linked_list();
-    add(list, 1);
-    add(list, 2);
-    add(list, 3);
-    add(list, 4);
-    add(list, 5);
-    add(list, 6);
-    add(list, 7);
-    add(list, 8);
-    add(list, 9);
+    LinkedList_t *list = ll_create();
+    int nums[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    for (int i = 0; i < 9; i++) {
+        ll_append(list, &nums[i]);
+    }
 
 
-    print_linked_list(list);
 
-    remove_at(list, 0);
-    remove_at(list, 1);
-    remove_at(list, 5);
-    remove_at(list, 10);
-    remove_at(list, 15);
-    remove_at(list, 20);
+    _print_linked_list(list);
 
-    add_at(list, 32, 0);
-    add_at(list, 142, 4);
-    add_at(list, 242, 9);
-    add_at(list, 342, 5);
+    ll_remove_at(list, 0);
+    ll_remove_at(list, 1);
+    ll_remove_at(list, 5);
+    ll_remove_at(list, 10);
+    ll_remove_at(list, 15);
+    ll_remove_at(list, 20);
 
-    print_linked_list(list);
+    int extra_nums[] = {32, 142, 242, 342};
+    ll_insert(list, &extra_nums[0], 0);
+    ll_insert(list, &extra_nums[1], 4);
+    ll_insert(list, &extra_nums[2], 9);
+    ll_insert(list, &extra_nums[3], 5);
+
+    _print_linked_list(list);
+
+    ll_destroy(list);
     return 0;
 }
