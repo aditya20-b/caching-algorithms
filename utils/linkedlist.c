@@ -3,7 +3,7 @@
 #include "linkedlist.h"
 
 LinkedList_t *ll_create() {
-    LinkedList_t *list = malloc(sizeof(LinkedList_t));
+    LinkedList_t *list = (LinkedList_t *) malloc(sizeof(LinkedList_t));
     list->head = NULL;
     list->tail = NULL;
     list->size = 0;
@@ -11,9 +11,10 @@ LinkedList_t *ll_create() {
 }
 
 ll_status ll_append(LinkedList_t *list, void* data) {
-    Node *node = malloc(sizeof(Node));
+    Node *node = (Node *) malloc(sizeof(Node));
     node->data = data;
     node->next = NULL;
+    node->prev = list->tail;
 
     // If the list is empty, set the head to the new node
     if (list->head == NULL) {
@@ -36,7 +37,7 @@ ll_status ll_insert(LinkedList_t *list, void* data, int index) {
         return LL_OUT_OF_BOUNDS;
     }
 
-    Node *node = malloc(sizeof(Node));
+    Node *node = (Node *) malloc(sizeof(Node));
     node->data = data;
     node->next = NULL;
 
@@ -44,31 +45,25 @@ ll_status ll_insert(LinkedList_t *list, void* data, int index) {
     if (list->head == NULL) {
         list->head = node;
         list->tail = node;
-        list->size++;
-        return LL_SUCCESS;
-    }
-    else if (index == 0) {
+    } else if (index == 0) {
+        // Insert at the head
         node->next = list->head;
+        list->head->prev = node;
         list->head = node;
-        list->size++;
-        return LL_SUCCESS;
-    }
-    else if (index == list->size) {
+    } else if (index == list->size) {
+        // Insert at the tail
+        node->prev = list->tail;
         list->tail->next = node;
         list->tail = node;
-        list->size++;
-        return LL_SUCCESS;
     } else {
-
+        // Insert in the middle at nth index
         Node *current = list->head;
         for (int i = 1; i < index; i++) {
-            if (!current) {
-                free(node);
-                return LL_OUT_OF_BOUNDS; // Just to be extra safe
-            }
             current = current->next;
         }
         node->next = current->next;
+        node->prev = current;
+        current->next->prev = node;
         current->next = node;
     }
     list->size++;
@@ -83,24 +78,18 @@ ll_status ll_remove_last(LinkedList_t *list) {
     }
 
     if (list->head == list->tail) {
+        // Delete the only node
         free(list->head);
         list->head = NULL;
         list->tail = NULL;
-        list->size--;
-        return LL_SUCCESS;
+    } else {
+        // Remove the last node
+        Node *last_node = list->tail;
+        list->tail = last_node->prev;
+        list->tail->next = NULL;
+        free(last_node);
     }
 
-    Node *current = list->head;
-    Node *previous = NULL;
-
-    while (current->next != NULL) {
-        previous = current;
-        current = current->next;
-    }
-    
-    previous->next = NULL;
-    list->tail = previous;
-    free(current);
     list->size--;
     return LL_SUCCESS;
 }
@@ -113,29 +102,25 @@ ll_status ll_remove_at(LinkedList_t *list, int index) {
     }
 
     Node *current = list->head;
-    Node *previous = NULL;
-    int i = 0;
 
-    if (current == NULL) {
-        return LL_EMPTY;
-    }
-
-    for (i = 0; i < index && current != NULL; i++) {
-        if (!current) {
-            return LL_OUT_OF_BOUNDS; // Just to be extra safe
-        }
-        previous = current;
+    for (int i = 0; i < index; i++) {
         current = current->next;
     }
-
+    // Remove the node
+    // Here if the below condition is true then it means that the node to be deleted is the head node
+    // and we need to change the head node to the next node
+    // then we need to free the current node
     if (current == list->head) {
         list->head = current->next;
-    } else if (previous) {
-        previous->next = current->next;
-    }
-
-    if (current == list->tail) {
-        list->tail = previous;
+        if (list->head) {
+            list->head->prev = NULL;
+        }
+    } else if (current == list->tail) {
+        list->tail = current->prev; 
+        list->tail->next = NULL;
+    } else {
+        current->prev->next = current->next;
+        current->next->prev = current->prev;
     }
 
     free(current);
