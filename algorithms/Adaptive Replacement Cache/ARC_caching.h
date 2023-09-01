@@ -9,7 +9,7 @@ typedef enum ARC_List_Type {
     T2,
     B1,
     B2
-} ARC_List_Enum;
+} ARC_List_Type;
 
 typedef enum ARC_Status {
     HIT,
@@ -19,8 +19,8 @@ typedef enum ARC_Status {
 
 
 typedef struct ARC_Data {
-    void *key;
     void *value;
+    ARC_List_Type type;
 } ARC_Data_t;
 
 typedef struct ARC {
@@ -35,18 +35,24 @@ typedef struct ARC {
 
 
 
-ArcCache_t *arc_init(int capacity);
+ArcCache_t *arc_init(int capacity, HashFunc_t hash, CompareFunc_t compare);
 void arc_destroy(ArcCache_t *cache);
 
 ARC_Status arc_lookup(ArcCache_t *cache, void *key, void **value); // For finding items in cache
-// void arc_insert(ArcCache_t *cache, void *key, void *value);        // Insert or update an item
+ARC_Status arc_insert(ArcCache_t *cache, void *key, void *value);        // Insert or update an item
 
 
-static void _replace(ArcCache_t *cache, void *key);
-static ARC_List_Enum _get_list(ArcCache_t *cache, void *key);
-
-
+static void arc_adjust_p(ArcCache_t *cache, ARC_List_Type accessed_ghost); 
+static void arc_replace(ArcCache_t *cache);
 
 
 
+#endif
+
+#ifndef MAX
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
+
+#ifndef MIN
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
